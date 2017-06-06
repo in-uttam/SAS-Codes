@@ -1,3 +1,4 @@
+/* This code scrapes INPUTs and OUTPUTs from the log and the codes*/
 options mprint mlogic symbolgen spool=yes source source2 armsubsys=(arm_none) notes noerrorabend;
 options nomprint nomlogic nosymbolgen spool=no nosource nosource2 armsubsys=(arm_none) nonotes noerrorabend;
 
