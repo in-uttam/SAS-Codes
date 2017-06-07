@@ -1,4 +1,3 @@
-/* This code scrapes INPUTs and OUTPUTs from the log and the codes*/
 options mprint mlogic symbolgen spool=yes source source2 armsubsys=(arm_none) notes noerrorabend;
 options nomprint nomlogic nosymbolgen spool=no nosource nosource2 armsubsys=(arm_none) nonotes noerrorabend;
 
@@ -253,63 +252,121 @@ output;
 end;
 run;
 
+data input_all_clean_relevant_4(keep=dataset library All I_O data_or_proc step section filename flowname jobname);
+length I_O $10. filename flowname jobname $200.;
+set input_all_extract_3;
+filename="&.logname";
+flowname="&.flowname.";
+jobname="&jobname.";
+library=upcase(scan(dataset,1,"."));
+dataset=strip(upcase(dataset));
+All=strip(upcase(compbl(All)));
+All=tranward(All," = ","=");
+All=tranward(All,"= ","=");
+All=tranward(All," =","=");
+if upcase(library) not in (&all_libs_comma.) or librart in ("WORK","WORKSPDS") then delete;
+if find(All,"OBSERVATIONS READ FROM THE DATA") then I_O="INPUT";
+if prxmatch("/\w*\%*LET +SYSLAST *\= */",All) then I_O="INPUT";
+if prxmatch("/\%*LET +\w*_INPUT\w*\d*/",All) then I_O="INPUT";
+if prxmatch("/\%*LET +\w*_OUTPUT\w*\d*/",All) then I_O="OUTPUT";
+
+if step="NOTE" then do;
+if find(All,"VIEW USED ") then I_O="INPUT";
+if prxmatch("/THE DATA SET \w*.\w* HAS \d* *\OBSERVATIONS/i",All) then I_O="OUTPUT";
+if find(All," CREATED, WITH ",'i') then I_O="OUTPUT";
+if find(All,"NO OBSERVATIONS IN DATA SET ",'i') then I_O="INPUT";
+if find(All,"NO OBSERVATIONS WERE SELECTED FROM DATA SET ",'i') then I_O="INPUT";
+end;
+
+if data_or_proc="DATA" then do;
+if substr(All,1,3)="SET" then I_O="INPUT";
+if find(All," SET ") then I_O="INPUT";
+if upcase(substr(All,1,4))="DATA" then I_O="OUTPUT";
+if find(All,"DECLARE HASH") then I_O="INPUT";
+if find(All,"MERGE ",'i') then I_O="INPUT";
+if find(All,"WHERE ",'i') then I_O="NO_I_O";
+if substr(All,1,6)="UPDATE" then I_O="INPUT";
+if find(All," OUTPUT ",'i') then I_O="OUTPUT";
+end;
 
 
+if data_or_proc="PROC" then do;
+if find(All," FROM ") then do;
+if find(substr(All,1,find(All," FROM ")),strip(dataset)) then I_O="OUTPUT";
+if find(substr(All,find(All," FROM ")),strip(dataset)) then I_O="INPUT";
+end;
+
+if find(All,"PROC APPEND ") then do;
+if find(All," BASE=") < find (All," DATA=") then do;
+if find(substr(All,find(All," BASE="),find(All," DATA=") - find(All," BASE=")),strip(dataset,"i") then I_O="OUTPUT";
+if find(substr(All,find(All," DATA=")),strip(dataset),"i") then I_O="INPUT";
+end;
+
+if find(All," DATA=") < find (All," BASE=") then do;
+if find(substr(All,find(All," DATA="),find(All," BASE=") - find(All," DATA=")),strip(dataset,"i") then I_O="OUTPUT";
+if find(substr(All,find(All," BASE=")),strip(dataset),"i") then I_O="INPUT";
+end;
+end;
+
+if find(All,"DATA=") and find(All," OUT=")=0 and find(All,strip(dataset)) then I_O="INPUT";
+
+if find(All,"DATA=") and find(All,"OUT=") then do;
+if find(substr(All,find(All," DATA="),find(All," OUT=") - find(All," DATA=")),strip(dataset),'i') then I_O="INPUT";
+if find(substr(All,find(All," OUT=")),strip(dataset),'i') then I_O="OUTPUT";
+
+if find(All,"CREATE TABLE ") and find(All,strip(dataet)) then I_O="OUTPUT";
+if find(All,"CREATE VIEW ") and find(All,strip(dataet)) then I_O="OUTPUT";
+if substr(All,1,6)="UPDATE" then I_O="OUTPUT";
+end;
 
 
+if find(All,"SYMBOLGEN:",'i') then I_O="NO_I_O";
+if prxmatch("/\w+\%*let\w*=\w*tranwrd/",All) then I_O="NO_I_O";
+if find(All,"SYSFUNC(EXIST(") then I_O="NO_I_O";
+
+run;
 
 
+proc append base=input_all_clean_relevant_all
+            data=input_all_clean_relevant_4;
+run;
+
+%mend;
 
 
+%macro find_input_output();
+
+options nomprint nomlogic nosymbolgen spool=no nosource nosource2 armsubsys=(arm_none) nonotes noerrorabend;
+
+proc datasets library=work nolist;
+delete input_all_clean_relevant_all;
+run;
 
 
+proc sql noprint;
+select count(*) into :num_of_log_files separated by '' from flow_job_info_latest where not missing(filename);
+quit;
 
+%put start_time=%sysfunc(datetime(),datetime20.);
 
+%do i=1 %to &num_of_log_files.;
 
+data _NULL_;
+set flow_job_info_latest(firstobs=&i. obs=&i.);
+call symputx('logname',filename);
+call symputx('flowname',flowname);
+call symputx('jobname',jobname);
+run;
 
+%put %sysevalf(&i.*100/&num_of_log_files.,ceil)% &logname;
 
+%extract_log(logname=&logname.,flowname=&flowname.,jobname=&jobname.);
 
+%end;
 
+%mend;
 
+%find_output;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+%put End_time=%sysfunc(datetime(),datetime20.);
 
