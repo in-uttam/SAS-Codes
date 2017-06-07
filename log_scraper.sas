@@ -366,7 +366,7 @@ run;
 
 %mend;
 
-%find_output;
+%find_input_output;
 
 %put End_time=%sysfunc(datetime(),datetime20.);
 
