@@ -154,6 +154,7 @@ if find(All,' proc ','i') then do;data_or_proc="PROC";flag_dataP=1;end;
 
 if length(All) > 5 then do;
 if substr(strip(All),1,4)="NOTE" then do;step="NOTE";flag1=1;All=strip(strip(All)||";");end;
+end;
 if flag1=1 then do;
 if find(All,"observation",'i') > 0 or find(All,"created, with",'i') > 0 or find(All,".VIEW used ") then flag_note=1;
 end;
@@ -166,7 +167,7 @@ if find(All,'let _OUTPUT') then do;step="_OUTPUT";flag_sysIO=1;
 if prxmatch("/\d+ \%*let +w*OUTPUT\d*_\w*/i",All) then delete;
 end;
 
-if find(All,'SYMBOLGEN:') then do;step="SYMBOLGEN";flag_symbolgen=1;All=strip(All)||";)"end;
+if find(All,'SYMBOLGEN:') then do;step="SYMBOLGEN";flag_symbolgen=1;All=strip(strip(All)||";");end;
 
 if find(All,' run;','i') or find(All,' quit;','i') or find(All,'|','i') or find(All,' run ;','i') or find(All,' quit ;','i') or find(All,"NOTE:",'i') then do;flag_dataP=0;end;
 if find(All,' run;','i') or find(All,' quit;','i') or find(All,' run ;','i') or find(All,' quit ;','i') then do;flag_runq=1;end;
