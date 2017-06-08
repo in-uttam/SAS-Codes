@@ -240,13 +240,13 @@ run;
 
 data input_all_extract_3;
 length dataset $500.;
-set input_all_clean2;
+set input_all_clean_2;
 ExpressionID = prxparse('/\w+\.[\w\&\.]+/');
 start=1;
 stop=length(All);
-call prxnext(ExpressionID,start,stop,All,postion,length);
+call prxnext(ExpressionID,start,stop,All,position,length);
 do while(position > 0);
-dataset=strip(substr(All,postion,length));
+dataset=strip(substr(All,position,length));
 call prxnext(ExpressionID,start,stop,All,position,length);
 output;
 end;
