@@ -155,7 +155,7 @@ if find(All,' proc ','i') then do;data_or_proc="PROC";flag_dataP=1;end;
 if length(All) > 5 then do;
 if substr(strip(All),1,4)="NOTE" then do;step="NOTE";flag1=1;All=strip(strip(All)||";");end;
 if flag1=1 then do;
-if find(All,"observation",'i') > 0 or find(All,"created, with",'i') > 0 find(All,".VIEW used") then flag_note=1;
+if find(All,"observation",'i') > 0 or find(All,"created, with",'i') > 0 or find(All,".VIEW used ") then flag_note=1;
 end;
 
 if find(All,'let SYSLAST = ') then do;step="SYSLAST";flag_sysIO=1;end;
