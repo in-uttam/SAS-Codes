@@ -98,7 +98,6 @@ run;
 data flow_job_info_latest;
 merge logfile_info_latest(in=a) flow_info(in=b);
 by flow_job;
-run;
 if a;
 run;
 
