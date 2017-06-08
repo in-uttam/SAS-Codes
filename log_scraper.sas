@@ -255,16 +255,16 @@ run;
 data input_all_clean_relevant_4(keep=dataset library All I_O data_or_proc step section filename flowname jobname);
 length I_O $10. filename flowname jobname $200.;
 set input_all_extract_3;
-filename="&.logname";
-flowname="&.flowname.";
+filename="&logname.";
+flowname="&flowname.";
 jobname="&jobname.";
 library=upcase(scan(dataset,1,"."));
 dataset=strip(upcase(dataset));
 All=strip(upcase(compbl(All)));
-All=tranward(All," = ","=");
-All=tranward(All,"= ","=");
-All=tranward(All," =","=");
-if upcase(library) not in (&all_libs_comma.) or librart in ("WORK","WORKSPDS") then delete;
+All=tranwrd(All," = ","=");
+All=tranwrd(All,"= ","=");
+All=tranwrd(All," =","=");
+if upcase(library) not in (&all_libs_comma.) or library in ("WORK","WORKSPDS") then delete;
 if find(All,"OBSERVATIONS READ FROM THE DATA") then I_O="INPUT";
 if prxmatch("/\w*\%*LET +SYSLAST *\= */",All) then I_O="INPUT";
 if prxmatch("/\%*LET +\w*_INPUT\w*\d*/",All) then I_O="INPUT";
@@ -298,12 +298,12 @@ end;
 
 if find(All,"PROC APPEND ") then do;
 if find(All," BASE=") < find (All," DATA=") then do;
-if find(substr(All,find(All," BASE="),find(All," DATA=") - find(All," BASE=")),strip(dataset,"i") then I_O="OUTPUT";
+if find(substr(All,find(All," BASE="),find(All," DATA=") - find(All," BASE=")),strip(dataset),"i") then I_O="OUTPUT";
 if find(substr(All,find(All," DATA=")),strip(dataset),"i") then I_O="INPUT";
 end;
 
 if find(All," DATA=") < find (All," BASE=") then do;
-if find(substr(All,find(All," DATA="),find(All," BASE=") - find(All," DATA=")),strip(dataset,"i") then I_O="OUTPUT";
+if find(substr(All,find(All," DATA="),find(All," BASE=") - find(All," DATA=")),strip(dataset),"i") then I_O="OUTPUT";
 if find(substr(All,find(All," BASE=")),strip(dataset),"i") then I_O="INPUT";
 end;
 end;
@@ -313,9 +313,9 @@ if find(All,"DATA=") and find(All," OUT=")=0 and find(All,strip(dataset)) then I
 if find(All,"DATA=") and find(All,"OUT=") then do;
 if find(substr(All,find(All," DATA="),find(All," OUT=") - find(All," DATA=")),strip(dataset),'i') then I_O="INPUT";
 if find(substr(All,find(All," OUT=")),strip(dataset),'i') then I_O="OUTPUT";
-
-if find(All,"CREATE TABLE ") and find(All,strip(dataet)) then I_O="OUTPUT";
-if find(All,"CREATE VIEW ") and find(All,strip(dataet)) then I_O="OUTPUT";
+end;
+if find(All,"CREATE TABLE ") and find(All,strip(dataset)) then I_O="OUTPUT";
+if find(All,"CREATE VIEW ") and find(All,strip(dataset)) then I_O="OUTPUT";
 if substr(All,1,6)="UPDATE" then I_O="OUTPUT";
 end;
 
