@@ -61,11 +61,11 @@ retain flag;
 by flow_job descending datetime;
 flag_2="N";
 if size > 1073741824 then 
- size_in_GB_MB_KB=compress(put(size/(1024*1024*1024),8,2||"GB");
+ size_in_GB_MB_KB=compress(put(size/(1024*1024*1024),8.2||"GB");
 else if size > 1048576 then 
- size_in_GB_MB_KB=compress(put(size/(1024*1024),8,2||"MB");
+ size_in_GB_MB_KB=compress(put(size/(1024*1024),8.2||"MB");
 else if size > 1024 then 
- size_in_GB_MB_KB=compress(put(size/(1024),8,2||"KB");
+ size_in_GB_MB_KB=compress(put(size/(1024),8.2||"KB");
 else if size < 1024 then 
  size_in_GB_MB_KB=compress(size||"B");
 if first.flow_job=1 and last.flow_job then flag_2="Y";
