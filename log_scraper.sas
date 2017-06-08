@@ -161,10 +161,10 @@ end;
 
 if find(All,'let SYSLAST = ') then do;step="SYSLAST";flag_sysIO=1;end;
 if find(All,'let _INPUT') then do;step="_INPUT";flag_sysIO=1;
-if prxmatch("/\d+ \%*let +w*INPUT\d*_\w*/i",All) then delete;
+if prxmatch("/\d+ \%*let +\w*INPUT\d*_\w*/i",All) then delete;
 end;
 if find(All,'let _OUTPUT') then do;step="_OUTPUT";flag_sysIO=1;
-if prxmatch("/\d+ \%*let +w*OUTPUT\d*_\w*/i",All) then delete;
+if prxmatch("/\d+ \%*let +\w*OUTPUT\d*_\w*/i",All) then delete;
 end;
 
 if find(All,'SYMBOLGEN:') then do;step="SYMBOLGEN";flag_symbolgen=1;All=strip(strip(All)||";");end;
