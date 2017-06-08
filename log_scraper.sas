@@ -105,12 +105,12 @@ run;
 
 data all_libs;
 length libname $15.;
-set sashelp.VLIBNAM(keep=libname rename=(ibname=libname_old));
+set sashelp.VLIBNAM(keep=libname rename=(libname=libname_old));
 libname='"'||strip(libname_old)||'"';
 run;
 
 proc sql noprint;
-select count(distinc libname) into:num_libs separated by "" from all_libs;
+select count(distinct libname) into:num_libs separated by "" from all_libs;
 select distinct libname into:All_libs separated by " " from all_libs;
 select distinct libname into:all_libs_comma separated by "," from all_libs;
 quit;
