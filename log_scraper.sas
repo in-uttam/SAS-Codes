@@ -9,7 +9,7 @@ libname uttam "/uttam/kumar";
 
 options mprint mlogic symbolgen spool=yes source source2 armsubsys=(arm_none) notes noerrorabend;
 
-filename x pipe "find &lib_to_search. -maxdepth 1 -type f \( -iname '*.log' \) -exec ls -lrt --full-time {} +;
+filename x pipe "find &lib_to_search. -maxdepth 1 -type f \( -iname '*.log' \) -exec ls -lrt --full-time {} +";
 
 data work.logfile_info(keep=filename size datetime pathname);
 infile x truncover;
