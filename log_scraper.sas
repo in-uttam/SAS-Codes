@@ -199,13 +199,13 @@ infile "&work_path./&logname" recfm=n dsd dlm=";" lrecl=32767;
 input All $;
 All=strip(left(All));
 All=TRANWRD(All,'0D'x,'');
-Alll=TRANWRD(All,'0A'x,'');
+All=TRANWRD(All,'0A'x,'');
 All=strip(left(All));
 All=compbl(All);
 /*if find statements starting with digits then its part of the code*/
-if prxmatch("/^d+ */",All) then do;
+if prxmatch("/^\d+ */",All) then do;
 /*remove the digits before the code part*/
-All=prxchange("s/^d+ *//",1All);section="CODE";
+All=prxchange("s/^\d+ *//",1,All);section="CODE";
 end;
 if prxmatch("/MPRINT\(\w+\):+ */",All) then do;
 All=prxchange("s/MPRINT\(\w+\):+ *//",1,All);section="MPRINT";
@@ -215,16 +215,16 @@ if upcase(substr(All,1,4))="DATA" then do;data_or_proc="DATA";flag_dataP=1;end;
 if upcase(substr(All,1,4))="PROC" then do;data_or_proc="PROC";flag_dataP=1;end;
 
 if length(All) > 5 then do;
-if substr(strip(All,1,4)="NOTE" then do;step="NOTE";flag1=1;data_orProc="";end;
+if substr(strip(All),1,4)="NOTE" then do;step="NOTE";flag1=1;data_orProc="";end;
 end;
 
 
 if length(All) > 9 then do;
-if substr(strip(All,1,9)="SYMBOLGEN" then do;step="SYMBOLGEN";flag_symbolgen=1;end;
+if substr(strip(All),1,9)="SYMBOLGEN" then do;step="SYMBOLGEN";flag_symbolgen=1;end;
 end;
 
 if flag1=1 then do;
-if find(All,"observation",'i') > 0 or find(All,"created, with",'i') > 0 find(All,".VIEW used") then flag_note=1;
+if find(All,"observation",'i') > 0 or find(All,"created, with",'i') > 0 or find(All,".VIEW used") then flag_note=1;
 end;
 
 if find(All,'let SYSLAST = ') then do;step="SYSLAST";flag_sysIO=1;end;
