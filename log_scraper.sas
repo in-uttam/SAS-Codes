@@ -1,3 +1,5 @@
+/* This code scrapes INPUTs and OUTPUTs from the logs and the SAS Codes */
+
 options mprint mlogic symbolgen spool=yes source source2 armsubsys=(arm_none) notes noerrorabend;
 options nomprint nomlogic nosymbolgen spool=no nosource nosource2 armsubsys=(arm_none) nonotes noerrorabend;
 
@@ -7,6 +9,7 @@ libname uttam "/uttam/kumar";
 
 %macro read_logs();
 
+/*Extracting the list of all the logs from a folder*/
 options mprint mlogic symbolgen spool=yes source source2 armsubsys=(arm_none) notes noerrorabend;
 
 filename x pipe "find &lib_to_search. -maxdepth 1 -type f \( -iname '*.log' \) -exec ls -lrt --full-time {} +";
@@ -31,7 +34,7 @@ pathname=trim(left(substr(path,1,find(path,"/",-length(path)))));
 run;
 
 
-/*Extracting flow and job name from the log file*/
+/*Extracting flow and job name from the log file eg. Flowname_jobname_20170120*/
 
 data logfile_info(keep=filename size datetime pathname flow_job);
 length year year_prev $4. flow_job $1000.;
@@ -82,8 +85,8 @@ by flow_job;
 run;
 
 
-/**********************************************/
-/**********************************************/
+/**************************************************************************************************/
+/**************uttam.flow_info contains other details like job belogs to which flow and etc********/
 
 data flow_info;
 length flow_job $500.;
@@ -101,7 +104,7 @@ by flow_job;
 if a;
 run;
 
-
+/*Finding out the list of libraries assigned and assigning them into macro variable*/
 data all_libs;
 length libname $15.;
 set sashelp.VLIBNAM(keep=libname rename=(libname=libname_old));
@@ -120,6 +123,8 @@ quit;
 
 
 %macro extract_log(logname=,flowname=,jobname=);
+
+/*reading the logfile and extracting the relevant information and deleting the useless information*/
 
 data input_all_1;
 infile "&lib_to_search./&logname." truncover expandtabs;
@@ -141,6 +146,7 @@ if find(All,"*/") then do;flag_comments=0;flag_comments_end=1;All=strip(strip(Al
 if flag_comments=1 or flag_comments_end=1 then step="COMMENTS";
 if step="COMMENTS" then delete;
 
+/*deleting the PUT statements*/
 if find(All,'PUT ','i') then do;
 if find(All,'PUT "','i') then delete;
 if prxmatch("/^\( *\d+\) \%*put /i",All) then delete;
@@ -148,6 +154,7 @@ if prxmatch("/^\( *\d+\) *PUT */i",All) then delete;
 if prxmatch("/MPRINT\(\w+\): *put/i",All) then delete;
 end;
 
+/*Identifying Data and proc steps*/
 if notdigit(All) > length(All) then delete;
 if find(All,' data ','i') and find(All,"NOTE:")=0 then do;data_or_proc="DATA";flag_dataP=1;end;
 if find(All,' proc ','i') then do;data_or_proc="PROC";flag_dataP=1;end;
@@ -159,6 +166,7 @@ if flag1=1 then do;
 if find(All,"observation",'i') > 0 or find(All,"created, with",'i') > 0 or find(All,".VIEW used ") then flag_note=1;
 end;
 
+/*Deleting the _INPUT statements which do not contain the information on the dataset*/
 if find(All,'let SYSLAST = ') then do;step="SYSLAST";flag_sysIO=1;end;
 if find(All,'let _INPUT') then do;step="_INPUT";flag_sysIO=1;
 if prxmatch("/\d+ \%*let +\w*INPUT\d*_\w*/i",All) then delete;
@@ -169,6 +177,7 @@ end;
 
 if find(All,'SYMBOLGEN:') then do;step="SYMBOLGEN";flag_symbolgen=1;All=strip(strip(All)||";");end;
 
+/*Marking the end of data and proc statements*/
 if find(All,' run;','i') or find(All,' quit;','i') or find(All,'|','i') or find(All,' run ;','i') or find(All,' quit ;','i') or find(All,"NOTE:",'i') then do;flag_dataP=0;end;
 if find(All,' run;','i') or find(All,' quit;','i') or find(All,' run ;','i') or find(All,' quit ;','i') then do;flag_runq=1;end;
 if flag_dataP=1 or flag_note=1 or flag_sysIO=1 or flag_runq=1 or flag_symbolgen=1 or flag_comments=1;
@@ -184,20 +193,21 @@ run;
 x "chmod 777 &first_path.";
 x "chmod 777 &work_path.";
 
-
+/*writing the relevately clean information in a SAS fil to read it again*/
 data _NULL_;
 file "&work_path./&logname";
 set input_all_1;
 put All;
 run;
 
-
+/*reading in the above written log file with semilcolon as delimiter*/
 data input_all_clean_2;
 length All $32767. data_or_proc $10. step $10. section $10.;
 retain data_or_proc;
 infile "&work_path./&logname" recfm=n dsd dlm=";" lrecl=32767;
 input All $;
 All=strip(left(All));
+/*Removing the line breaks, for easy reading of the statements*/
 All=TRANWRD(All,'0D'x,'');
 All=TRANWRD(All,'0A'x,'');
 All=strip(left(All));
@@ -210,7 +220,7 @@ end;
 if prxmatch("/MPRINT\(\w+\):+ */",All) then do;
 All=prxchange("s/MPRINT\(\w+\):+ *//",1,All);section="MPRINT";
 end;
-
+/*Identifying data and proc steps*/
 if upcase(substr(All,1,4))="DATA" then do;data_or_proc="DATA";flag_dataP=1;end;
 if upcase(substr(All,1,4))="PROC" then do;data_or_proc="PROC";flag_dataP=1;end;
 
@@ -237,7 +247,7 @@ if upcase(substr(All,1,3))="RUN" or upcase(substr(All,1,4))="QUIT" then do; flag
 run;
 
 
-
+/*Extracting the datasets which are in the form of libame.datasetname and writing them into multiple lines */
 data input_all_extract_3;
 length dataset $500.;
 set input_all_clean_2;
@@ -252,6 +262,8 @@ output;
 end;
 run;
 
+
+/*Classifying the dataset into INPUTs and OUTPUTs*/
 data input_all_clean_relevant_4(keep=dataset library All I_O data_or_proc step section filename flowname jobname);
 length I_O $10. filename flowname jobname $200.;
 set input_all_extract_3;
