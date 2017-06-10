@@ -56,7 +56,7 @@ proc sort data=logfile_info;
 by flow_job descending datetime;
 run;
 
-/*Picking out the latest instance of the log file*/
+/*Picking out the latest instance of the log file, the same can be run on SAS codes as well*/
 
 data logfile_info_latest(drop=pathname flag flag_2);
 set logfile_info;
