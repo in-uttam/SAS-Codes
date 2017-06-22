@@ -71,7 +71,7 @@ else if size > 1024 then
  size_in_GB_MB_KB=compress(put(size/(1024),8.2)||"KB");
 else if size < 1024 then 
  size_in_GB_MB_KB=compress(size||"B");
-if first.flow_job=1 and last.flow_job then flag_2="Y";
+if first.flow_job=1 and last.flow_job=1 then flag_2="Y";
 if first.flow_job then flag=1;
 else flag=flag+1;
 if flag=2 then flag_2="Y";
