@@ -243,7 +243,7 @@ end;
 if find(All,'let _OUTPUT') then do;step="_OUTPUT";flag_sysIO=1;end;
 
 if upcase(substr(All,1,3))="RUN" or upcase(substr(All,1,4))="QUIT" or find(All,'|','i') then do; flag_dataP=0;data_or_proc="";end;
-if upcase(substr(All,1,3))="RUN" or upcase(substr(All,1,4))="QUIT" then do; flag_runq=0;end;
+if upcase(substr(All,1,3))="RUN" or upcase(substr(All,1,4))="QUIT" then do; flag_runq=1;end;
 run;
 
 
