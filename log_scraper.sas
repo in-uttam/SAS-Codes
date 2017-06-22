@@ -220,6 +220,9 @@ end;
 if prxmatch("/MPRINT\(\w+\):+ */",All) then do;
 All=prxchange("s/MPRINT\(\w+\):+ *//",1,All);section="MPRINT";
 end;
+/*Deleting the comment*/
+if substr(All,1,1)="*" then delete;
+
 /*Identifying data and proc steps*/
 if upcase(substr(All,1,4))="DATA" then do;data_or_proc="DATA";flag_dataP=1;end;
 if upcase(substr(All,1,4))="PROC" then do;data_or_proc="PROC";flag_dataP=1;end;
