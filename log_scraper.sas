@@ -334,6 +334,8 @@ if find(All,"CREATE VIEW ") and find(All,strip(dataset)) then I_O="OUTPUT";
 if substr(All,1,6)="UPDATE" then I_O="OUTPUT";
 end;
 
+dataset=resolve(dataset);
+if substr(dataset,length(strip(dataset)))="." then dataset=substr(dataset,1,length(strip(dataset))-1);
 
 if find(All,"SYMBOLGEN:",'i') then I_O="NO_I_O";
 if prxmatch("/\w+\%*let\w*=\w*tranwrd/",All) then I_O="NO_I_O";
